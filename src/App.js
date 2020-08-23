@@ -1,11 +1,25 @@
 import React from 'react';
 import './App.css';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.css';
-import { Container, Row, Col, InputGroup, FormControl, Button } from 'react-bootstrap';
+import { Container, Row, Col, InputGroup, FormControl, Button, Alert } from 'react-bootstrap';
 
 const App = () => {
   const [object, setObject] = React.useState({ url: 'warehouse', guid: null, revision: null });
   const [valid, setvalid] = React.useState(false);
+  const [doneRegister, setdoneRegister] = React.useState({ show: false, message: "", variant: 'danger' })
+
+  const submitHandler = async () => {
+    const result = await axios.post("http://127.0.0.1:41191/api/v1/licensing", {
+      guid: object.guid,
+      url: object.url,
+      revision: object.revision
+    });
+    if (result) {
+      if (result.status === 200)
+        setdoneRegister({ show: true, message: `${result.data.company} - ${result.data.companyHomePage}`, variant: 'success' });
+    }
+  }
 
   const onChangeHandler = (event) => {
     const rawValue = { ...object };
@@ -17,6 +31,9 @@ const App = () => {
   return (
     <div className="App">
       <Container style={{ margin: 20 }}>
+        {doneRegister.show && <Alert variant={doneRegister.variant} onClose={() => setdoneRegister({ ...doneRegister, show: false })} dismissible>
+          {doneRegister.message}
+        </Alert>}
         <Row>
           <Col md={6}>
             <InputGroup className="mb-3">
@@ -47,7 +64,7 @@ const App = () => {
         </Row>
         <Row>
           <Col md={3}>
-            <Button variant="primary" disabled={!valid}>Register</Button>
+            <Button variant="primary" disabled={!valid} onClick={submitHandler}>Register</Button>
           </Col>
         </Row>
       </Container>
